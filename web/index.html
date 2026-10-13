@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HoneyBadger — Automotive Bare-Metal ECU Firmware & 3D Digital Twin</title>
+  <meta name="description" content="Professional 3D digital twin and real-time diagnostic telemetry for HoneyBadger automotive bare-metal ECU firmware.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app-container">
+
+    <header id="main-header">
+      <div class="brand-group">
+        <div class="brand-logo">
+          <svg viewBox="0 0 28 28" fill="none" class="badge-icon">
+            <rect width="28" height="28" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.2"/>
+            <path d="M7 14L14 7L21 14L14 21L7 14Z" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
+            <circle cx="14" cy="14" r="2.5" fill="#e2e8f0"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">HONEYBADGER <span class="tag-version">ECU v1.0</span></div>
+          <div class="brand-sub">Bare-Metal TTC Architecture • 72 MHz Cortex-M Digital Twin</div>
+        </div>
+      </div>
+
+      <div class="sys-metrics-bar">
+        <div class="metric-pill">
+          <span class="status-indicator-dot online"></span>
+          <span class="metric-label">CORE STATE</span>
+          <span class="metric-val" id="hud-mcu-state">RUNNING</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-label">SYSTICK</span>
+          <span class="metric-val" id="hud-uptime">0 ms</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-label">CPU LOAD</span>
+          <span class="metric-val" id="hud-cpu-load">30.2%</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-label">WDG</span>
+          <span class="metric-val" id="hud-wdg">ARMED</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btn-reset" class="btn-action secondary" title="System Hardware Reset">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Reset MCU
+        </button>
+        <button id="btn-pause-sim" class="btn-action primary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="icon-pause"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          <span id="text-pause">Pause</span>
+        </button>
+      </div>
+    </header>
+
+    <div id="bus-status-strip">
+      <div class="strip-label">PERIPHERAL BUS ARBITRATION &amp; STATUS:</div>
+      <div class="bus-strip-items">
+        <div class="bus-strip-item" id="bus-ind-uart1">
+          <span class="bus-name">UART1</span>
+          <span class="bus-detail">S1 (500ms, P1)</span>
+          <span class="bus-status-dot"></span>
+        </div>
+        <div class="bus-strip-item" id="bus-ind-uart2">
+          <span class="bus-name">UART2</span>
+          <span class="bus-detail">S2 (250ms, P2)</span>
+          <span class="bus-status-dot"></span>
+        </div>
+        <div class="bus-strip-item" id="bus-ind-spi1">
+          <span class="bus-name">SPI1</span>
+          <span class="bus-detail">S3/S4 (10ms/1s)</span>
+          <span class="bus-status-dot"></span>
+        </div>
+        <div class="bus-strip-item" id="bus-ind-spi2">
+          <span class="bus-name">SPI2</span>
+          <span class="bus-detail">S5/S6 (800ms/1.5s)</span>
+          <span class="bus-status-dot"></span>
+        </div>
+        <div class="bus-strip-item" id="bus-ind-i2c">
+          <span class="bus-name">I2C1</span>
+          <span class="bus-detail">S7–S10 (450ms)</span>
+          <span class="bus-status-dot"></span>
+        </div>
+        <div class="bus-strip-item" id="bus-ind-uart3">
+          <span class="bus-name">UART3</span>
+          <span class="bus-detail">DMA TX / Cmd RX</span>
+          <span class="bus-status-dot"></span>
+        </div>
+      </div>
+    </div>
+
+    <main id="main-content">
+
+      <section id="viewport-3d-pane">
+        <div id="canvas-container"></div>
+
+        <div id="viewport-overlay">
+
+          <div class="camera-toolbar">
+            <span class="toolbar-label">VIEW:</span>
+            <button class="cam-btn active" data-cam="iso">Isometric</button>
+            <button class="cam-btn" data-cam="top">Top</button>
+            <button class="cam-btn" data-cam="mcu">MCU</button>
+            <button class="cam-btn" data-cam="motor">Motor &amp; Encoder</button>
+            <button class="cam-btn" data-cam="sensors">Sensors</button>
+          </div>
+
+          <div id="component-card" class="glass-card hidden">
+            <div class="card-header">
+              <div class="comp-icon-box" id="card-icon-box">IC</div>
+              <div>
+                <div class="comp-title" id="card-title">MCU Core (STM32F103)</div>
+                <div class="comp-subtitle" id="card-sub">ARM Cortex-M @ 72 MHz</div>
+              </div>
+              <button id="card-close" class="close-btn" title="Close Panel">&times;</button>
+            </div>
+            <div class="card-body" id="card-content">
+
+            </div>
+          </div>
+
+          <div class="controls-hint">
+            <span>Left Click + Drag to Orbit • Right Click to Pan • Scroll to Zoom • Click Component to Inspect</span>
+          </div>
+        </div>
+      </section>
+
+      <aside id="dashboard-pane">
+
+        <div class="tab-nav">
+          <button class="tab-btn active" data-tab="tab-telemetry">Telemetry TX</button>
+          <button class="tab-btn" data-tab="tab-motor">Motor &amp; PID</button>
+          <button class="tab-btn" data-tab="tab-scheduler">TTC Scheduler</button>
+        </div>
+
+        <div class="tab-content-wrapper">
+
+          <div class="tab-pane active" id="tab-telemetry">
+
+            <div class="dash-card">
+              <div class="card-title-row">
+                <span class="card-title">UART3 TELEMETRY PROTOCOL v1.0</span>
+                <span class="status-pill active">500ms DMA Stream</span>
+              </div>
+              <div class="telemetry-stat-grid">
+                <div class="stat-box">
+                  <div class="stat-name">SEQUENCE</div>
+                  <div class="stat-number" id="telem-seq">#000</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-name">FRAME SIZE</div>
+                  <div class="stat-number">62 bytes</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-name">CRC-16 CCITT</div>
+                  <div class="stat-number valid" id="telem-crc">VALID</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-name">DATA STORE</div>
+                  <div class="stat-number" id="telem-buf">BUF_A</div>
+                </div>
+              </div>
+
+              <div class="hex-dump-section">
+                <div class="section-label">SERIAL PROTOCOL FRAME INSPECTOR [SOF 0xAA ... EOF 0x55]</div>
+                <div class="hex-viewer" id="raw-hex-display">
+                  AA 01 00 ...
+                </div>
+              </div>
+            </div>
+
+            <div class="dash-card">
+              <div class="card-title-row">
+                <span class="card-title">10 SENSOR SAMPLING MATRIX</span>
+                <span class="status-pill subtle">Double-Buffered Snapshot</span>
+              </div>
+
+              <div class="sensor-table-container">
+                <table class="sensor-table">
+                  <thead>
+                    <tr>
+                      <th>SENSOR</th>
+                      <th>BUS</th>
+                      <th>PERIOD</th>
+                      <th>PRIO</th>
+                      <th>STATUS</th>
+                      <th>ENGINEERING VALUE</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sensor-table-body">
+
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-pane" id="tab-motor">
+            <div class="dash-card">
+              <div class="card-title-row">
+                <span class="card-title">DC MOTOR POSITION PID CONTROLLER</span>
+                <span class="status-pill active">10ms Loop (TIM4)</span>
+              </div>
+
+              <div class="motor-telemetry-grid">
+                <div class="metric-card">
+                  <div class="metric-title">TARGET POSITION</div>
+                  <div class="metric-val" id="mot-setpoint">0 cnt (0.0°)</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-title">ENCODER MEASUREMENT</div>
+                  <div class="metric-val" id="mot-actual">0 cnt (0.0°)</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-title">POSITION ERROR</div>
+                  <div class="metric-val" id="mot-error">0 cnt</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-title">PWM OUTPUT (TIM3)</div>
+                  <div class="metric-val" id="mot-pwm">0 / 999 (0%)</div>
+                </div>
+              </div>
+
+              <div class="graph-wrapper">
+                <div class="graph-header">
+                  <span class="graph-legend setpoint">Setpoint Target</span>
+                  <span class="graph-legend actual">Actual Position</span>
+                </div>
+                <canvas id="pid-waveform-canvas" width="460" height="140"></canvas>
+              </div>
+
+              <div class="setpoint-controls">
+                <div class="control-label-row">
+                  <span class="ctrl-heading">MANUAL SETPOINT INJECTION (Simulate UART3 Rx):</span>
+                  <span id="slider-target-val" class="ctrl-val">0 counts</span>
+                </div>
+                <input type="range" id="setpoint-slider" min="-1000" max="1000" value="0" step="10">
+                <div class="preset-buttons">
+                  <button class="btn-preset" data-pos="0">0° Home</button>
+                  <button class="btn-preset" data-pos="250">+90°</button>
+                  <button class="btn-preset" data-pos="500">+180°</button>
+                  <button class="btn-preset" data-pos="-500">-180°</button>
+                  <button class="btn-preset" data-pos="1000">+360°</button>
+                </div>
+                <div class="auto-stream-row">
+                  <label class="switch-label">
+                    <input type="checkbox" id="chk-auto-setpoint" checked>
+                    <span>Autonomous 5-second UART3 Setpoint Stream (Requirement R6)</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="encoder-diag-row">
+                <div class="encoder-box">
+                  <span class="enc-name">ENCODER CH_A</span>
+                  <span class="enc-state" id="enc-state-a">LOW</span>
+                </div>
+                <div class="encoder-box">
+                  <span class="enc-name">ENCODER CH_B</span>
+                  <span class="enc-state" id="enc-state-b">LOW</span>
+                </div>
+                <div class="encoder-box">
+                  <span class="enc-name">STALL DETECTOR</span>
+                  <span class="enc-state" id="stall-state">NORMAL</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-pane" id="tab-scheduler">
+            <div class="dash-card">
+              <div class="card-title-row">
+                <span class="card-title">TIME-TRIGGERED COOPERATIVE SCHEDULER</span>
+                <span class="status-pill subtle">1ms SysTick • Table-Driven</span>
+              </div>
+
+              <div class="scheduler-timeline-box">
+                <div class="timeline-title">10ms DEADLINE BUDGET (Worst-Case Coincidence)</div>
+                <div class="budget-bar">
+                  <div class="budget-used" style="width: 30%;">3.0ms Active Tasks (30%)</div>
+                  <div class="budget-idle" style="width: 70%;">7.0ms Headroom (70%)</div>
+                </div>
+              </div>
+
+              <div class="task-table-wrapper">
+                <table class="sensor-table">
+                  <thead>
+                    <tr>
+                      <th>TASK NAME</th>
+                      <th>PERIOD</th>
+                      <th>PRIO</th>
+                      <th>EXECUTIONS</th>
+                      <th>WORST (μs)</th>
+                      <th>STATE</th>
+                    </tr>
+                  </thead>
+                  <tbody id="task-table-body">
+
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="dash-card">
+              <div class="card-title-row">
+                <span class="card-title">SHARED BUS RESOURCE ARBITER</span>
+                <span class="status-pill subtle">Mutex Protection</span>
+              </div>
+              <div class="arbiter-grid">
+                <div class="arb-card" id="arb-spi1">
+                  <div class="arb-name">SPI1 BUS</div>
+                  <div class="arb-status">UNLOCKED</div>
+                  <div class="arb-desc">S3 (10ms) &amp; S4 (1s)</div>
+                </div>
+                <div class="arb-card" id="arb-spi2">
+                  <div class="arb-name">SPI2 BUS</div>
+                  <div class="arb-status">UNLOCKED</div>
+                  <div class="arb-desc">S5 (800ms) &amp; S6 (1.5s)</div>
+                </div>
+                <div class="arb-card" id="arb-i2c1">
+                  <div class="arb-name">I2C1 BUS</div>
+                  <div class="arb-status">UNLOCKED</div>
+                  <div class="arb-desc">S7–S10 (450ms)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <footer id="console-footer">
+      <div class="console-header">
+        <span class="console-label">UART3 SYSTEM SERIAL LOG (115,200 BAUD)</span>
+        <button id="btn-clear-console" class="link-btn">Clear Log</button>
+      </div>
+      <div id="console-output">
+        <div class="log-entry sys">[0.000s] HoneyBadger Bare-Metal Firmware Initialized. 72 MHz SysCLK. SysTick 1ms armed.</div>
+        <div class="log-entry sys">[0.005s] TTC Scheduler Table Loaded: 8 periodic tasks registered in priority order.</div>
+        <div class="log-entry sys">[0.010s] TIM2 Hardware Quadrature Encoder &amp; TIM3 20kHz PWM Motor Drivers online.</div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script src="firmware_sim.js"></script>
+  <script src="scene3d.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
