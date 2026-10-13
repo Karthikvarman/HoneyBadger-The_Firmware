@@ -6,7 +6,7 @@
 <style>
   @page {
     size: A4 portrait;
-    margin: 15mm 15mm 15mm 15mm;
+    margin: 8mm;
   }
   * {
     box-sizing: border-box;
@@ -62,15 +62,15 @@
     letter-spacing: 0.5px;
     border-left: 4px solid #0284c7;
     padding-left: 8px;
-    margin-top: 14px;
-    margin-bottom: 8px;
+    margin-top: 10px;
+    margin-bottom: 6px;
   }
   .diagram-container {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 14px;
+    padding: 8px;
+    margin-bottom: 10px;
     text-align: center;
   }
   .diagram-svg {
@@ -80,14 +80,14 @@
   .grid-two {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 10px;
+    margin-bottom: 8px;
   }
   .card {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 6px;
-    padding: 10px 12px;
+    padding: 8px 10px;
   }
   .card h3 {
     font-size: 10pt;
@@ -102,7 +102,7 @@
   li {
     position: relative;
     padding-left: 14px;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
     font-size: 9.5pt;
     color: #334155;
   }
@@ -117,18 +117,18 @@
     font-weight: 600;
     color: #0f172a;
   }
-  .footer {
-    margin-top: 14px;
-    padding-top: 8px;
-    border-top: 1px solid #e2e8f0;
-    font-size: 8.5pt;
-    color: #64748b;
-    display: flex;
-    justify-content: space-between;
+  .special-note {
+    margin-top: 8px;
+    padding: 7px 10px;
+    border-left: 4px solid #059669;
+    border-radius: 4px;
+    background: #ecfdf5;
+    color: #334155;
+    font-size: 9pt;
+    line-height: 1.35;
   }
-  .footer a {
-    color: #0284c7;
-    text-decoration: none;
+  .special-note strong {
+    color: #065f46;
   }
 </style>
 </head>
@@ -275,9 +275,9 @@
     </div>
   </div>
 
-  <div class="footer">
-    <div><strong>Repository:</strong> <a href="https://github.com/Karthikvarman/HoneyBadger-The_Firmware">github.com/Karthikvarman/HoneyBadger-The_Firmware</a></div>
-    <div><strong>Test Coverage:</strong> 31 / 31 Unit Tests Passing (100.0%) | C99 Compliant | Automotive Grade</div>
+  <div class="special-note">
+    <strong>What makes this solution special:</strong>
+    Its browser-based 3D digital twin mirrors scheduler timing, sensor-bus activity, PID motor response, and CRC-checked telemetry in real time, making firmware behavior observable without physical ECU hardware.
   </div>
 
 </body>
